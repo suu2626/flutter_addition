@@ -53,7 +53,7 @@ class _AdditionScreenState extends State<AdditionScreen> {
     final int? userAnswer = int.tryParse(_controller.text);
     if (userAnswer == null) {
       setState(() {
-        _message = '無効な入力です。数字を入力してください。';
+        _message = 'すうじをいれてね！';
       });
       return;
     }
@@ -61,11 +61,11 @@ class _AdditionScreenState extends State<AdditionScreen> {
     final int correctAnswer = _num1 + _num2;
     if (userAnswer == correctAnswer) {
       setState(() {
-        _message = '正解です！';
+        _message = 'せいかい！';
       });
     } else {
       setState(() {
-        _message = '不正解です。正しい答えは $correctAnswer です。';
+        _message = 'ざんねん！せいかいは $correctAnswer でした。';
       });
     }
   }
@@ -88,12 +88,12 @@ class _AdditionScreenState extends State<AdditionScreen> {
             TextField(
               controller: _controller,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '答えを入力してください'),
+              decoration: const InputDecoration(labelText: 'ここにこたえをいれてね！'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _checkAnswer,
-              child: const Text('チェック'),
+              child: const Text('こたえあわせ'),
             ),
             const SizedBox(height: 20),
             Text(
@@ -103,7 +103,7 @@ class _AdditionScreenState extends State<AdditionScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _generateProblem,
-              child: const Text('新しい問題'),
+              child: const Text('あたらしいもんだい'),
             ),
           ],
         ),
