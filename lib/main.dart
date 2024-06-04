@@ -96,9 +96,14 @@ class _AdditionScreenState extends State<AdditionScreen> {
             TextField(
               controller: _controller, // ユーザー入力コントローラを設定
               keyboardType: TextInputType.number, // 入力タイプを数字に設定
-              decoration: const InputDecoration(
-                  labelText: 'ここにこたえをいれてね！'), // プレースホルダーテキストを設定
-              style: const TextStyle(fontSize: 40), // ユーザー入力テキストのフォントサイズを設定
+              decoration: const InputDecoration(labelText: 'ここにこたえをいれてね！'), // プレースホルダーテキストを設定
+              style: const TextStyle(
+                fontSize: 40 // ユーザー入力テキストのフォントサイズを設定
+                color: Colors.blue, // テキストの色
+                fontFamily: 'Roboto', // フォントファミリ
+                fontStyle: FontStyle.italic, // フォントスタイル
+                fontWeight: FontWeight.bold, // フォントの太さ
+                ),
             ),
             const SizedBox(height: 20), // スペース
             ElevatedButton(
