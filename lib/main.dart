@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // SystemChannelsを使用するためのインポート
 import 'dart:math';
 
 void main() {
@@ -11,28 +12,29 @@ class AdditionApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Addition App',
+      title: 'Math App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const AdditionScreen(), // メインの画面ウィジェットを指定
+      home: const MathScreen(), // メインの画面ウィジェットを指定
     );
   }
 }
 
-// 足し算問題を表示する画面ウィジェット
-class AdditionScreen extends StatefulWidget {
-  const AdditionScreen({super.key});
+// 足し算引き算問題を表示する画面ウィジェット
+class MathScreen extends StatefulWidget {
+  const MathScreen({super.key});
 
   @override
-  State<AdditionScreen> createState() => _AdditionScreenState();
+  State<MathScreen> createState() => _MathScreenState();
 }
 
 // 画面の状態を管理するステートクラス
-class _AdditionScreenState extends State<AdditionScreen> {
+class _MathScreenState extends State<MathScreen> {
   final Random _random = Random(); // 乱数生成
-  late int _num1; // 足し算の最初の数
-  late int _num2; // 足し算の2番目の数
+  late int _num1; // 最初の数
+  late int _num2; // 2番目の数
+  bool _isAddition = true; // 足し算かどうかを示すフラグ
   // ユーザー入力を管理するコントローラー
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode(); // フォーカスを管理するノード
@@ -41,9 +43,10 @@ class _AdditionScreenState extends State<AdditionScreen> {
   @override
   void initState() {
     super.initState();
-    _generateProblem(); // 初期状態で足し算問題を生成
+    _generateProblem(); // 初期状態で問題を生成
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus(); // 初期状態で入力欄にフォーカスを設定
+      _showKeyboard(); // 数字キーボードを表示
     });
   }
 
@@ -54,7 +57,7 @@ class _AdditionScreenState extends State<AdditionScreen> {
     super.dispose();
   }
 
-  // 新しい足し算問題を生成するメソッド
+  // 新しい問題を生成するメソッド
   void _generateProblem() {
     setState(() {
       _num1 = _random.nextInt(10); // 0から9の間のランダムな数を生成
@@ -64,7 +67,13 @@ class _AdditionScreenState extends State<AdditionScreen> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus(); // 新しい問題生成後に入力欄にフォーカスを設定
+      _showKeyboard(); // 数字キーボードを表示
     });
+  }
+
+  // 数字キーボードを表示するメソッド
+  void _showKeyboard() {
+    SystemChannels.textInput.invokeMethod('TextInput.show');
   }
 
   // 答えをチェックするメソッド
@@ -78,34 +87,68 @@ class _AdditionScreenState extends State<AdditionScreen> {
       return;
     }
 
-    final int correctAnswer = _num1 + _num2; // 答えを計算
+    final int correctAnswer =
+        _isAddition ? _num1 + _num2 : _num1 - _num2; // 答えを計算
     if (userAnswer == correctAnswer) {
       // 答えが正しい場合
       setState(() {
         _message = 'せいかい！'; // 正解メッセージ
       });
-      // 答えが間違っている場合
     } else {
+      // 答えが間違っている場合
       setState(() {
         _message = 'ざんねん！せいかいは $correctAnswer でした。'; // 不正解メッセージ
       });
     }
   }
 
+  // 足し算ボタンが押されたときの処理
+  void _setAddition() {
+    setState(() {
+      _isAddition = true;
+      _generateProblem();
+    });
+  }
+
+  // 引き算ボタンが押されたときの処理
+  void _setSubtraction() {
+    setState(() {
+      _isAddition = false;
+      _generateProblem();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Addition App'), // アプリケーションのタイトルを設定
+        title: const Text('Math App'), // アプリケーションのタイトルを設定
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // 画面の周囲にパディングを追加
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center, // 縦方向に中央揃え
           children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _setAddition, // 足し算ボタンが押されたときに処理
+                  child: const Text('たしざん'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _setSubtraction, // 引き算ボタンが押されたときに処理
+                  child: const Text('ひきざん'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             Text(
-              '$_num1 + $_num2 = ?',
-              style: const TextStyle(fontSize: 48), // 足し算問題を表示
+              _isAddition
+                  ? '$_num1 + $_num2 = ?'
+                  : '$_num1 - $_num2 = ?', // 現在の問題を表示
+              style: const TextStyle(fontSize: 48), // 問題のテキストスタイル
             ),
             TextField(
               controller: _controller, // ユーザー入力コントローラを設定
@@ -113,12 +156,7 @@ class _AdditionScreenState extends State<AdditionScreen> {
               focusNode: _focusNode, // フォーカスノードを設定
               decoration: const InputDecoration(
                   labelText: 'ここにこたえをいれてね！'), // プレースホルダーテキストを設定
-              style: const TextStyle(fontSize: 40 // ユーザー入力テキストのフォントサイズを設定
-                  // color: Colors.blue, // テキストの色
-                  // fontFamily: 'Roboto', // フォントファミリ
-                  // fontStyle: FontStyle.italic, // フォントスタイル
-                  // fontWeight: FontWeight.bold, // フォントの太さ
-                  ),
+              style: const TextStyle(fontSize: 40), // ユーザー入力テキストのフォントサイズを設定
             ),
             const SizedBox(height: 20), // スペース
             ElevatedButton(
