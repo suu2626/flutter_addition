@@ -35,12 +35,23 @@ class _AdditionScreenState extends State<AdditionScreen> {
   late int _num2; // 足し算の2番目の数
   // ユーザー入力を管理するコントローラー
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode(); // フォーカスを管理するノード
   String _message = ''; // 結果メッセージ
 
   @override
   void initState() {
     super.initState();
     _generateProblem(); // 初期状態で足し算問題を生成
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus(); // 初期状態で入力欄にフォーカスを設定
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   // 新しい足し算問題を生成するメソッド
@@ -50,6 +61,9 @@ class _AdditionScreenState extends State<AdditionScreen> {
       _num2 = _random.nextInt(9) + 1; // 1から9の間のランダムな数を生成
       _controller.clear(); // ユーザー入力をクリア
       _message = ''; // メッセージをクリア
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus(); // 新しい問題生成後に入力欄にフォーカスを設定
     });
   }
 
@@ -96,14 +110,15 @@ class _AdditionScreenState extends State<AdditionScreen> {
             TextField(
               controller: _controller, // ユーザー入力コントローラを設定
               keyboardType: TextInputType.number, // 入力タイプを数字に設定
-              decoration: const InputDecoration(labelText: 'ここにこたえをいれてね！'), // プレースホルダーテキストを設定
-              style: const TextStyle(
-                fontSize: 40 // ユーザー入力テキストのフォントサイズを設定
-                color: Colors.blue, // テキストの色
-                fontFamily: 'Roboto', // フォントファミリ
-                fontStyle: FontStyle.italic, // フォントスタイル
-                fontWeight: FontWeight.bold, // フォントの太さ
-                ),
+              focusNode: _focusNode, // フォーカスノードを設定
+              decoration: const InputDecoration(
+                  labelText: 'ここにこたえをいれてね！'), // プレースホルダーテキストを設定
+              style: const TextStyle(fontSize: 40 // ユーザー入力テキストのフォントサイズを設定
+                  // color: Colors.blue, // テキストの色
+                  // fontFamily: 'Roboto', // フォントファミリ
+                  // fontStyle: FontStyle.italic, // フォントスタイル
+                  // fontWeight: FontWeight.bold, // フォントの太さ
+                  ),
             ),
             const SizedBox(height: 20), // スペース
             ElevatedButton(
