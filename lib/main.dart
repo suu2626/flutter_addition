@@ -3,11 +3,11 @@ import 'package:flutter/services.dart'; // SystemChannelsを使用するため�
 import 'dart:math';
 
 void main() {
-  runApp(const AdditionApp());
+  runApp(const MathApp());
 }
 
-class AdditionApp extends StatelessWidget {
-  const AdditionApp({super.key});
+class MathApp extends StatelessWidget {
+  const MathApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +16,76 @@ class AdditionApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MathScreen(), // メインの画面ウィジェットを指定
+      home: const DifficultyPage(), // トップページの指定
+    );
+  }
+}
+
+// 難易度選択ページウィジェット
+class DifficultyPage extends StatelessWidget {
+  const DifficultyPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('さんすうアプリ'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'レベルをえらんでね',
+              style: TextStyle(fontSize: 24),
+            ),
+            const SizedBox(height: 50), // テキストとボタン間のマージンを追加
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MathScreen(difficulty: 'かんたん'),
+                  ),
+                );
+              },
+              child: const Text('かんたん'),
+            ),
+            const SizedBox(height: 50), // ボタン間のマージン
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MathScreen(difficulty: 'ふつう'),
+                  ),
+                );
+              },
+              child: const Text('ふつう'),
+            ),
+            const SizedBox(height: 50), // ボタン間のマージン
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MathScreen(difficulty: 'むずかしい'),
+                  ),
+                );
+              },
+              child: const Text('むずかしい'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 // 足し算引き算問題を表示する画面ウィジェット
 class MathScreen extends StatefulWidget {
-  const MathScreen({super.key});
+  final String difficulty;
+  const MathScreen({super.key, required this.difficulty});
 
   @override
   State<MathScreen> createState() => _MathScreenState();
@@ -60,19 +122,38 @@ class _MathScreenState extends State<MathScreen> {
   // 新しい問題を生成するメソッド
   void _generateProblem() {
     setState(() {
-      _num1 = _random.nextInt(10); // 0から9の間のランダムな数を生成
-      _num2 = _random.nextInt(9) + 1; // 1から9の間のランダムな数を生成
+      int maxRange;
+      switch (widget.difficulty) {
+        case 'かんたん':
+          maxRange = 10;
+          break;
+        case 'ふつう':
+          maxRange = 50;
+          break;
+        case 'むずかしい':
+          maxRange = 100;
+          break;
+        default:
+          maxRange = 10;
+      }
+      _num1 = _random.nextInt(maxRange); // ランダムな数を生成
+      _num2 = _random.nextInt(maxRange) + 1; // ランダムな数を生成
+      if (!_isAddition && _num1 < _num2) {
+        // 引き算で左辺が右辺より小さい場合は入れ替える
+        int temp = _num1;
+        _num1 = _num2;
+        _num2 = temp;
+      }
       _controller.clear(); // ユーザー入力をクリア
       _message = ''; // メッセージをクリア
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus(); // 新しい問題生成後に入力欄にフォーカスを設定
-      _showKeyboard(); // 数字キーボードを表示
-    });
+    _focusNode.requestFocus(); // 新しい問題生成後に入力欄にフォーカスを設定
+    _showKeyboard(); // 数字キーボードを表示
   }
 
-  // 数字キーボードを表示するメソッド
-  void _showKeyboard() {
+// 数字キーボードを表示するメソッド
+  void _showKeyboard() async {
+    await Future.delayed(const Duration(milliseconds: 100));
     SystemChannels.textInput.invokeMethod('TextInput.show');
   }
 
@@ -122,7 +203,7 @@ class _MathScreenState extends State<MathScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Math App'), // アプリケーションのタイトルを設定
+        title: const Text('さんすうアプリ'), // アプリケーションのタイトルを設定
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // 画面の周囲にパディングを追加
